@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Reflection.Emit;
+using System.Text.RegularExpressions;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,10 +17,12 @@ namespace DAoC_Chat_Gator
 {
     public partial class MainWindow : Window
     {
-        private ObservableCollection<Spell> spells { get; set; }  = new ObservableCollection<Spell>();
-        private ObservableCollection<Heals> heals { get; set; } = new ObservableCollection<Heals>();
+        private ObservableCollection<Totals> totals { get; set; } = new ObservableCollection<Totals>();
+        private ObservableCollection<Ability> spells { get; set; }  = new ObservableCollection<Ability>();
+        private ObservableCollection<Ability> dotsnpets { get; set; } = new ObservableCollection<Ability>();
+        private ObservableCollection<Ability> heals { get; set; } = new ObservableCollection<Ability>();
 
-        private ObservableCollection<Weapon> weapons { get; set; } = new ObservableCollection<Weapon>();
+        private ObservableCollection<Ability> weapons { get; set; } = new ObservableCollection<Ability>();
 
         private ObservableCollection<Armor> armor { get; set; } = new ObservableCollection<Armor>();
 
@@ -91,6 +94,8 @@ namespace DAoC_Chat_Gator
                 {
                     File.Delete(filePath);
                     spells.Clear();
+                    totals.Clear();
+                    dotsnpets.Clear();
                     weapons.Clear();
                     heals.Clear();
                     armor.Clear();
@@ -147,63 +152,393 @@ namespace DAoC_Chat_Gator
                     string[] allLines = streamReader.ReadToEnd().Split(new[] { Environment.NewLine }, StringSplitOptions.None);
 
                     spells.Clear();
+                    totals.Clear();
+                    dotsnpets.Clear();
+                    weapons.Clear();
+                    heals.Clear();
+                    armor.Clear();
+                    kills.Clear();
 
                     string spellName = null;
+                    bool healingSpell = false;
                     string styleName = null;
                     string weaponName = null;
                     int styleGrowth = 0;
                     string bodyPart = null;
 
+                    string spellPattern = @"You cast a (.+?) spell!";
+                    string shotPattern = @"You fire a (.+?)!";
+                    string damagePattern = @"You hit .+? for (\d+).+?damage!";
+                    string critSpellPattern = @"You critically hit for an additional (\d+) damage!";
+                    string critAttackPattern = @" You critically hit .+? for an additional (\d+) damage!";
+                    string healPattern = @"You heal .+? for (\d+) hit points.";
+                    string critHealPattern = @"You critically heal .+? for (\d+) hit points.";
+                    string dotDamagePattern = @"Your (.+?) attacks .+? and hits for (\d+).+?damage!"; // 1:spellName, 2:damageValue
+                    string dotDamageHitPattern = @"Your (.+?) hits .+? for (\d+).+?damage!"; // 1:spellName, 2:damageValue
+                    string dotCritPattern = @"Your (.+?) critically hits .+? for an additional (\d+) damage!"; // 1:spellName, 2:damageValue
+                    string styleGrowthPattern = @"You perform your (.+?) perfectly!.+?(\d+),"; // 1:styleName, 2:growthValue
+                    string attackPattern = @"You attack .+? with your (.+?) and hit for (\d+).+?damage!"; // 1:weaponName, 2:damage
+                    string killPattern = @"You just killed (.+?)";
+                    string bodyDamagePattern = ".+? hits your (.+?) for (\\d+).+?damage!";
+
                     foreach (string line in allLines)
                     {
+                        // might work with this later on extra damage I think
                         if (line.Contains("@@"))
                         {
                             continue;
                         }
 
-                            if (line.Contains("You cast a"))
+                        
+                        Match spellMatch = Regex.Match(line, spellPattern);
+                        Match shotMatch = Regex.Match(line, shotPattern);
+                        Match spellDamageMatch = Regex.Match(line, damagePattern);
+                        Match critSpellMatch = Regex.Match(line, critSpellPattern);
+                        Match critAttackMatch = Regex.Match(line, critAttackPattern);
+                        Match healMatch = Regex.Match(line, healPattern);
+                        Match critHealMatch = Regex.Match(line, critHealPattern);
+                        Match dotDamageMatch = Regex.Match(line, dotDamagePattern);
+                        Match dotHitMatch = Regex.Match(line, dotDamageHitPattern);
+                        Match dotCritMatch = Regex.Match(line, dotCritPattern);
+                        Match styleGrowthMatch = Regex.Match(line, styleGrowthPattern);
+                        Match attackDamageMatch = Regex.Match(line, attackPattern);
+                        Match killMatch = Regex.Match(line, killPattern);
+                        Match bodyDamageMatch = Regex.Match(line, bodyDamagePattern);
+
+                        if (spellMatch.Success)
                         {
-                            spellName = ExtractSpellName(line);
+                            spellName = spellMatch.Groups[1].Value;
                             styleName = "";
                             weaponName = "";
                             bodyPart = "";
                         }
-                        // You heal.*for.*hit points
-                        if (line.Contains("You hit "))
+                        if (shotMatch.Success)
                         {
-                            if (styleName != "") {
-                                spellName = styleName;
-                            } 
-                            else if (bodyPart != "")
+                            spellName = shotMatch.Groups[1].Value;
+                            styleName = "";
+                            weaponName = "";
+                            bodyPart = "";
+                        } else if (dotCritMatch.Success)
+                        {
+                            spellName = dotCritMatch.Groups[1].Value;
+                            int damageValue = int.Parse(dotCritMatch.Groups[2].Value);
+
+                            if (spellName == "")
                             {
-                                spellName = bodyPart;
+                                if (styleName != "")
+                                {
+                                    spellName = styleName;
+                                }
+                                else if (bodyPart != "")
+                                {
+                                    spellName = bodyPart;
+                                }
+                                else if (weaponName != "")
+                                {
+                                    spellName = weaponName;
+                                } else
+                                {
+                                    spellName = "unknown";
+                                }
                             }
-                            else if (weaponName != "")
+
+                            Ability dnp = dotsnpets.FirstOrDefault(s => s.SpellName == spellName);
+                            if (dnp != null)
                             {
-                                spellName = weaponName;
+                                dnp.Crit.Add(damageValue);
                             }
-                            int damageValue = ExtractDamageValue(line);
+                            else
+                            {
+                                Ability newDnp = new Ability
+                                {
+                                    SpellName = spellName,
+                                    Crit = { damageValue }
+                                };
+                                dotsnpets.Add(newDnp);
+                            }
+                            
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "damage");
+                            if (tots != null)
+                            {
+                                tots.Crit += damageValue;
+                            }
+                            else
+                            {
+                                Totals newTots = new Totals
+                                {
+                                    Crit = damageValue,
+                                    Type = "damage"
+                                };
+                                totals.Add(newTots);
+                            }
+
+                            styleName = "";
+                        }
+                        else if (dotDamageMatch.Success)
+                        {
+                            spellName = dotDamageMatch.Groups[1].Value;
+                            int damageValue = int.Parse(dotDamageMatch.Groups[2].Value);
+
+                            if (spellName == "")
+                            {
+                                if (styleName != "")
+                                {
+                                    spellName = styleName;
+                                }
+                                else if (bodyPart != "")
+                                {
+                                    spellName = bodyPart;
+                                }
+                                else if (weaponName != "")
+                                {
+                                    spellName = weaponName;
+                                }
+                            }
                             if (damageValue > 0)
                             {
-                                Spell spell = spells.FirstOrDefault(s => s.Name == spellName);
+                                Ability dnp = dotsnpets.FirstOrDefault(s => s.SpellName == spellName);
+                                if (dnp != null)
+                                {
+                                    dnp.Output.Add(damageValue);
+                                }
+                                else
+                                {
+                                    Ability newDnp = new Ability
+                                    {
+                                        SpellName = spellName,
+                                        Output = { damageValue },
+                                        Crit = { 0 }
+                                    };
+                                    dotsnpets.Add(newDnp);
+                                }
+                            }
+
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "damage");
+                            if (tots != null)
+                            {
+                                tots.Output += damageValue;
+                            }
+                            else
+                            {
+                                Totals newTots = new Totals
+                                {
+                                    Output = damageValue,
+                                    Type = "damage"
+                                };
+                                totals.Add(newTots);
+                            }
+
+                            styleName = "";
+                        }
+                        else if (dotHitMatch.Success)
+                        {
+                            spellName = dotHitMatch.Groups[1].Value;
+                            int damageValue = int.Parse(dotHitMatch.Groups[2].Value);
+
+                            if (spellName == "")
+                            {
+                                if (styleName != "")
+                                {
+                                    spellName = styleName;
+                                }
+                                else if (bodyPart != "")
+                                {
+                                    spellName = bodyPart;
+                                }
+                                else if (weaponName != "")
+                                {
+                                    spellName = weaponName;
+                                }
+                            }
+                            if (damageValue > 0)
+                            {
+                                Ability dnp = dotsnpets.FirstOrDefault(s => s.SpellName == spellName);
+                                if (dnp != null)
+                                {
+                                    dnp.Output.Add(damageValue);
+                                }
+                                else
+                                {
+                                    Ability newDnp = new Ability
+                                    {
+                                        SpellName = spellName,
+                                        Output = { damageValue }
+                                    };
+                                    dotsnpets.Add(newDnp);
+                                }
+                            }
+
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "damage");
+                            if (tots != null)
+                            {
+                                tots.Output += damageValue;
+                            }
+                            else
+                            {
+                                Totals newTots = new Totals
+                                {
+                                    Output = damageValue,
+                                    Type = "damage"
+                                };
+                                totals.Add(newTots);
+                            }
+
+                            styleName = "";
+                        }
+                        else if (critAttackMatch.Success)
+                        {
+                            int damageValue = int.Parse(dotHitMatch.Groups[1].Value);
+
+                            if (styleName == "")
+                            {
+                                styleName = "Base";
+                            }
+
+                            if (damageValue > 0)
+                            {
+                                Ability weap = weapons.FirstOrDefault(s => s.StyleName == styleName && s.WeaponName == weaponName);
+                                if (weap != null)
+                                {
+                                    weap.Crit.Add(damageValue);
+                                }
+                                else
+                                {
+                                    Ability newWeap = new Ability
+                                    {
+                                        StyleName = styleName,
+                                        Crit = { damageValue },
+                                        WeaponName = weaponName,
+                                    };
+                                    weapons.Add(newWeap);
+                                }
+                            }
+
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "damage");
+                            if (tots != null)
+                            {
+                                tots.Crit += damageValue;
+                            }
+                            else
+                            {
+                                Totals newTots = new Totals
+                                {
+                                    Crit = damageValue,
+                                    Type = "damage"
+                                };
+                                totals.Add(newTots);
+                            }
+
+                            styleName = "";
+                        }
+                        else if (critSpellMatch.Success)
+                        {
+                            int damageValue = int.Parse(critSpellMatch.Groups[1].Value);
+                            if (spellName == "")
+                            {
+                                if (styleName != "")
+                                {
+                                    spellName = styleName;
+                                }
+                                else if (bodyPart != "")
+                                {
+                                    spellName = bodyPart;
+                                }
+                                else if (weaponName != "")
+                                {
+                                    spellName = weaponName;
+                                }
+                            }
+                            if (damageValue > 0)
+                            {
+                                Ability spell = spells.FirstOrDefault(s => s.SpellName == spellName);
+                                if (spell != null)
+                                {
+                                    spell.Crit.Add(damageValue);
+                                }
+                                else
+                                {
+                                    Ability newSpell = new Ability
+                                    {
+                                        SpellName = spellName,
+                                        Crit = { damageValue }
+                                    };
+                                    spells.Add(newSpell);
+                                }
+                            }
+
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "damage");
+                            if (tots != null)
+                            {
+                                tots.Crit += damageValue;
+                            }
+                            else
+                            {
+                                Totals newTots = new Totals
+                                {
+                                    Crit = damageValue,
+                                    Type = "damage"
+                                };
+                                totals.Add(newTots);
+                            }
+
+                            styleName = "";
+                        }
+                        else if (spellDamageMatch.Success)
+                        {
+                            int damageValue = int.Parse(spellDamageMatch.Groups[1].Value);
+                            if (spellName == "")
+                            {
+                                if (styleName != "")
+                                {
+                                    spellName = styleName;
+                                }
+                                else if (bodyPart != "")
+                                {
+                                    spellName = bodyPart;
+                                }
+                                else if (weaponName != "")
+                                {
+                                    spellName = weaponName;
+                                }
+                            }
+                            if (damageValue > 0)
+                            {
+                                Ability spell = spells.FirstOrDefault(s => s.SpellName == spellName);
                                 if (spell != null)
                                 {
                                     spell.Output.Add(damageValue);
                                 }
                                 else
                                 {
-                                    Spell newSpell = new Spell
+                                    Ability newSpell = new Ability
                                     {
-                                        Name = spellName,
+                                        SpellName = spellName,
                                         Output = { damageValue }
                                     };
                                     spells.Add(newSpell);
                                 }
                             }
-                        } 
-                        else if (line.Contains("You heal "))
+
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "damage");
+                            if (tots != null)
+                            {
+                                tots.Output += damageValue;
+                            }
+                            else
+                            {
+                                Totals newTots = new Totals
+                                {
+                                    Output = damageValue,
+                                    Type = "damage"
+                                };
+                                totals.Add(newTots);
+                            }
+
+                            styleName = "";
+                        }
+                        else if (healMatch.Success)
                         {
-                            int healValue = ExtractHealValue(line);
+                            int matchValue = int.Parse(healMatch.Groups[1].Value);
                             if (weaponName != "")
                             {
                                 spellName = weaponName;
@@ -216,25 +551,41 @@ namespace DAoC_Chat_Gator
                             {
                                 spellName = styleName;
                             }
-                            Heals heal = heals.FirstOrDefault(s => s.Name == spellName);
+                            Ability heal = heals.FirstOrDefault(s => s.SpellName == spellName);
                             if (heal != null)
                             {
-                                heal.Output.Add(healValue);
+                                heal.Output.Add(matchValue);
                             }
                             else
                             {
-                                Heals newHeal = new Heals
+                                Ability newHeal = new Ability
                                 {
-                                    Name = spellName,
-                                    Output = { healValue }
+                                    SpellName = spellName,
+                                    Output = { matchValue }
                                 };
                                 heals.Add(newHeal);
                             }
+
+
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "heal");
+                            if (tots != null)
+                            {
+                                tots.Output += matchValue;
+                            }
+                            else
+                            {
+                                Totals newTots = new Totals
+                                {
+                                    Output = matchValue,
+                                    Type = "heal"
+                                };
+                                totals.Add(newTots);
+                            }
                         }
-                        else if (line.Contains("You just killed "))
+                        else if (killMatch.Success)
                         {
-                            string killName = ExtractKillName(line);
-                            Kills kill = kills.FirstOrDefault(s => s.Name == killName);
+                            string matchValue = killMatch.Groups[1].Value;
+                            Kills kill = kills.FirstOrDefault(s => s.Name == matchValue);
                             if (kill != null)
                             {
                                 kill.Output.Add(1);
@@ -243,27 +594,27 @@ namespace DAoC_Chat_Gator
                             {
                                 Kills newKill = new Kills
                                 {
-                                    Name = killName,
+                                    Name = matchValue,
                                     Output = { 1 }
                                 };
                                 kills.Add(newKill);
                             }
                         }
-                        else if (line.Contains("hits your "))
+                        else if (bodyDamageMatch.Success)
                         {
-                            bodyPart = ExtractBodyPart(line);
-                            int damageTaken = ExtractDamageTaken(line);
+                            bodyPart = bodyDamageMatch.Groups[1].Value;
+                            int matchValue = int.Parse(bodyDamageMatch.Groups[2].Value);
                             Armor part = armor.FirstOrDefault(s => s.Name == bodyPart);
                             if (part != null)
                             {
-                                part.Output.Add(damageTaken);
+                                part.Output.Add(matchValue);
                             }
                             else
                             {
                                 Armor newPart = new Armor
                                 {
                                     Name = bodyPart,
-                                    Output = { damageTaken }
+                                    Output = { matchValue }
                                 };
                                 armor.Add(newPart);
                             }
@@ -271,35 +622,56 @@ namespace DAoC_Chat_Gator
                             styleName = "";
                             weaponName = "";
                         }
-                        else if (line.Contains("You perform your "))
+                        else if (styleGrowthMatch.Success)
                         {
-                            styleName = ExtractStyle(line);
-                            styleGrowth = ExtractGrowth(line);
+                            styleName = styleGrowthMatch.Groups[1].Value;
+                            styleGrowth = int.Parse(styleGrowthMatch.Groups[2].Value);
                         }
-                        else if (line.Contains(" You attack "))
+                        else if (attackDamageMatch.Success)
                         {
-                            weaponName = ExtractWeapon(line);
-                            int attackDamage = ExtractAttackDamage(line);
+                            weaponName = attackDamageMatch.Groups[1].Value;
+                            int matchValue = int.Parse(attackDamageMatch.Groups[2].Value);
+                            if (styleName == "")
+                            {
+                                styleName = "Base";
+                            }
 
-                            Weapon weap = weapons.FirstOrDefault(s => s.StyleName == styleName && s.WeaponName == weaponName);
+                            Ability weap = weapons.FirstOrDefault(s => s.StyleName == styleName && s.WeaponName == weaponName);
                             if (weap != null)
                             {
-                                weap.Output.Add(attackDamage);
+                                weap.Output.Add(matchValue);
                                 weap.Growths.Add(styleGrowth);
                             }
                             else
                             {
-                                Weapon newWeap = new Weapon
+                                Ability newWeap = new Ability
                                 {
                                     StyleName = styleName,
-                                    Output = { attackDamage },
+                                    Output = { matchValue },
                                     WeaponName = weaponName,
                                     Growths = { styleGrowth }
                                 };
                                 weapons.Add(newWeap);
                             }
+
+
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "damage");
+                            if (tots != null)
+                            {
+                                tots.Output += matchValue;
+                            }
+                            else
+                            {
+                                Totals newTots = new Totals
+                                {
+                                    Output = matchValue,
+                                    Type = "damage"
+                                };
+                                totals.Add(newTots);
+                            }
                             spellName = "";
                             bodyPart = "";
+                            styleGrowth = 0;
                         }
                         // [15:08:20] You perform your Bash perfectly! (+35, Growth Rate: 0.87)
                         // [15:08:20] You attack the grimwood willow with your Basalt Buckler of Oblivion and hit for 125 damage! (Damage Modifier: 1869)
@@ -313,119 +685,11 @@ namespace DAoC_Chat_Gator
             }
         }
 
-        private string ExtractWeapon(string line)
-        {
-            int startIndex = line.IndexOf(" with your ") + " with your ".Length;
-            int endIndex = line.IndexOf(" and hit for ");
-            return line.Substring(startIndex, endIndex - startIndex);
-        }
-        private int ExtractAttackDamage(string line)
-        {
-            int startIndex = line.IndexOf("and hit for ") + "and hit for ".Length;
-            int endIndex = 0;
-            if (line.Contains(" (+"))
-            {
-                endIndex = line.IndexOf(" (+");
-            } 
-            else if (line.Contains(" (-"))
-            {
-                endIndex = line.IndexOf(" (-");
-            }
-            else
-            {
-                endIndex = line.IndexOf(" damage!");
-            }
-            string damageString = line.Substring(startIndex, endIndex - startIndex);
-            int damageValue;
-            int.TryParse(damageString, out damageValue);
-            return damageValue;
-        }
-        private string ExtractStyle(string line)
-        {
-            int startIndex = line.IndexOf("You perform your ") + "You perform your ".Length;
-            int endIndex = line.IndexOf(" perfectly!");
-            return line.Substring(startIndex, endIndex - startIndex);
-        }
-        private int ExtractGrowth(string line)
-        {
-            int startIndex = line.IndexOf("(+") + "(+".Length;
-            int endIndex = line.IndexOf(", Growth Rate");
-            string growthString = line.Substring(startIndex, endIndex - startIndex);
-            int growthValue;
-            int.TryParse(growthString, out growthValue);
-            return growthValue;
-        }
-        //[14:40:08] The grimwood willow hits your arm for 124 (-50) damage! (Damage Modifier: 2060)
-        private string ExtractBodyPart(string line)
-        {
-            int startIndex = line.IndexOf(" hits your ") + " hits your ".Length;
-            int endIndex = line.IndexOf(" for ");
-            return line.Substring(startIndex, endIndex - startIndex);
-        }
-        private int ExtractDamageTaken(string line)
-        {
-            int startIndex = line.IndexOf(" for ") + " for ".Length;
-            int endIndex = 0;
-            if (line.Contains("("))
-            {
-                endIndex = line.IndexOf(" (");
-            }
-            else
-            {
-                endIndex = line.IndexOf(" damage");
-            }
-            string damageString = line.Substring(startIndex, endIndex - startIndex);
-            int damageValue;
-            int.TryParse(damageString, out damageValue);
-            return damageValue;
-        }
-        private string ExtractSpellName(string line)
-        {
-            int startIndex = line.IndexOf("You cast a ") + "You cast a ".Length;
-            int endIndex = line.IndexOf(" spell!");
-            return line.Substring(startIndex, endIndex - startIndex);
-        }
-        private string ExtractKillName(string line)
-        {
-            int startIndex = line.IndexOf("You just killed ") + "You just killed ".Length;
-            int endIndex = line.IndexOf("!");
-            return line.Substring(startIndex, endIndex - startIndex);
-        }
-        private int ExtractDamageValue(string line)
-        {
-            // [10:33:44] You hit Level 1 Training Dummy for 65 damage!
-            // [10:33:44] You hit Level 50 Training Dummy for 23(-8) damage!
-            int startIndex = line.IndexOf(" for ") + " for ".Length;
-            int endIndex = 0;
-            if (line.Contains("("))
-            {
-                endIndex = line.IndexOf("(");
-            }
-            else {
-                endIndex = line.IndexOf(" damage");
-            }
-            string damageString = line.Substring(startIndex, endIndex - startIndex);
-
-            int damageValue;
-            int.TryParse(damageString, out damageValue);
-            return damageValue;
-        }
-        private int ExtractHealValue(string line)
-        {
-            //[10:33:44] You hit Level 1 Training Dummy for 65 damage!
-            //[10:33:44] You hit Level 50 Training Dummy for 23(-8) damage!
-            int startIndex = line.IndexOf(" for ") + " for ".Length;
-            int endIndex = line.IndexOf(" hit points");
-
-            string healString = line.Substring(startIndex, endIndex - startIndex);
-
-            int healValue;
-            int.TryParse(healString, out healValue);
-            return healValue;
-        }
         public void PopulateTabsWithData()
         {
+            TotalView.ItemsSource = totals;
             SpellView.ItemsSource = spells;
+            DnpView.ItemsSource = dotsnpets;
             StyleView.ItemsSource = weapons;
             HealView.ItemsSource = heals;
             ArmorView.ItemsSource = armor;
@@ -433,10 +697,9 @@ namespace DAoC_Chat_Gator
         }
         public void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Tab switching logic
             if (TabController.SelectedItem == SpellTab)
             {
-                // Switch to Tab 1 data
+                // Do we want to do something here?
             }
         }
         private void Sort(string sortBy, ListSortDirection direction)
@@ -448,6 +711,14 @@ namespace DAoC_Chat_Gator
             SortDescription sd = new SortDescription(sortBy, direction);
             dataView.SortDescriptions.Add(sd);
             dataView.Refresh();
+
+            ICollectionView dnpView =
+  CollectionViewSource.GetDefaultView(DnpView.ItemsSource);
+
+            dnpView.SortDescriptions.Clear();
+            SortDescription dnpSD = new SortDescription(sortBy, direction);
+            dnpView.SortDescriptions.Add(dnpSD);
+            dnpView.Refresh();
 
 
             ICollectionView styleData =
@@ -527,8 +798,6 @@ CollectionViewSource.GetDefaultView(KillView.ItemsSource);
                         headerClicked.Column.HeaderTemplate =
                           Resources["HeaderTemplateArrowDown"] as DataTemplate;
                     }
-
-                    // Remove arrow from previously sorted header
                     if (_lastHeaderClicked != null && _lastHeaderClicked != headerClicked)
                     {
                         _lastHeaderClicked.Column.HeaderTemplate = null;
@@ -542,44 +811,36 @@ CollectionViewSource.GetDefaultView(KillView.ItemsSource);
 
     }
 
-    public class Spell
+    public class Totals
     {
-        public string Name { get; set; }
-        public List<int> Output { get; set;  } = new List<int>();
-
-        public int TotalDamage => Output.Sum();
-        public int MinDamage => Output.Min();
-        public int MaxDamage => Output.Max();
-        public double AverageDamage => Output.Count > 0 ? Math.Round(Output.Average(), 2) : 0;
+        public int Output { get; set; } = new int();
+        public int Crit { get; set; } = new int();
+        public string Type { get; set; }
     }
 
-    public class Weapon
+
+    public class Ability
     {
         public string WeaponName { get; set; }
         public string StyleName { get; set; }
-        public List<int> Output { get; set; } = new List<int>();
+        public string SpellName { get; set; }
 
-        public int WeaponTotalDamage => Output.Sum();
-        public int WeaponMinDamage => Output.Min();
-        public int WeaponMaxDamage => Output.Max();
-        public double WeaponAverageDamage => Output.Count > 0 ? Math.Round(Output.Average(), 2) : 0;
+        public List<int> Output { get; set; } = new List<int>();
+        public int TotalOutput => Output.Sum();
+        public int MinOutput => Output.Min();
+        public int MaxOutput => Output.Max();
+        public double AverageOutput => Output.Count > 0 ? Math.Round(Output.Average(), 2) : 0;
+
+        public List<int> Crit { get; set; } = new List<int>();
+        public int TotalCrit => Crit.Count > 0 ? Crit.Sum() : 0;
+        public int MinCrit => Crit.Count > 0 ? Crit.Min() : 0;
+        public int MaxCrit => Crit.Count > 0 ? Crit.Max() : 0;
+        public double AverageCrit => Crit.Count > 0 ? Math.Round(Crit.Average(), 2) : 0;
 
         public List<int> Growths { get; set; } = new List<int>();
-
         public int MinGrowth => Growths.Min();
         public int MaxGrowth => Growths.Max();
         public double AverageGrowth => Growths.Count > 0 ? Math.Round(Growths.Average(), 2) : 0;
-    }
-
-    public class Heals
-    {
-        public string Name { get; set; }
-        public List<int> Output { get; set; } = new List<int>();
-
-        public int TotalHeal => Output.Sum();
-        public int MinHeal => Output.Min();
-        public int MaxHeal => Output.Max();
-        public double AverageHeal => Output.Count > 0 ? Math.Round(Output.Average(), 2) : 0;
     }
 
     public class Armor
