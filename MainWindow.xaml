@@ -4,71 +4,109 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="DAoC Chat Gator" Height="400" Width="600"
-        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        Title="DAoC Chat Gator" Height="200" SizeToContent="Width" MinWidth="100" MaxWidth="600"
+        WindowStyle="None"  AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize"
         Topmost="True" Opacity="0.5" MouseLeftButtonDown="Window_MouseLeftButtonDown">
 
 
     <Grid>
         <!-- Add a Slider for opacity control at the top -->
-            <Slider x:Name="OpacitySlider" Minimum="0" Maximum="1" Value="0.8"
-                  Width="100" RenderTransformOrigin="0.051,0.391" HorizontalAlignment="Left" VerticalAlignment="Top" />
+        <Slider x:Name="OpacitySlider" Minimum="0" Maximum="1" Value="0.8"
+                  Width="84" RenderTransformOrigin="0.051,0.391" HorizontalAlignment="Left" VerticalAlignment="Top" />
         <!-- Choose File button -->
         <Button Content="Choose File" Click="ChooseFileButton_Click"
-                    Canvas.Left="10" Canvas.Top="5" Margin="261,5,145,374"/>
+                    Canvas.Left="10" Canvas.Top="5" Margin="97,0,338,180"/>
+
+        <!-- Choose File button -->
+        <Button Content="Reset Log" Click="ResetLog_Click"
+                    Canvas.Left="10" Canvas.Top="5" Margin="369,2,66,178"/>
 
         <TabControl x:Name="TabController" SelectionChanged="TabControl_SelectionChanged" Margin="0,30,0,10">
             <TabItem x:Name="SpellTab" Header="Spells">
                 <!-- Data for Tab 1 -->
-                <ListView Name="SpellView">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto">
+                    <ListView Name="SpellView" GridViewColumnHeader.Click="GridViewColumnHeaderClickedHandler">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Spell Name" DisplayMemberBinding="{Binding Name}" Width="Auto"/>
+                                <GridViewColumn Header="Total Damage" DisplayMemberBinding="{Binding TotalDamage}" Width="Auto"/>
+                                <GridViewColumn Header="Min Damage" DisplayMemberBinding="{Binding MinDamage}" Width="Auto"/>
+                                <GridViewColumn Header="Max Damage" DisplayMemberBinding="{Binding MaxDamage}" Width="Auto"/>
+                                <GridViewColumn Header="Average Damage" DisplayMemberBinding="{Binding AverageDamage}" Width="Auto"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem x:Name="StyleTab" Header="Styles">
+                <!-- Data for Tab 2 -->
+                <ScrollViewer HorizontalScrollBarVisibility="Auto">
+                    <ListView Name="StyleView" GridViewColumnHeader.Click="GridViewColumnHeaderClickedHandler">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Style Name" DisplayMemberBinding="{Binding StyleName}" Width="Auto"/>
+                                <GridViewColumn Header="Weapon Name" DisplayMemberBinding="{Binding WeaponName}" Width="Auto"/>
+                                <GridViewColumn Header="Total Damage" DisplayMemberBinding="{Binding WeaponTotalDamage}" Width="Auto"/>
+                                <GridViewColumn Header="Min Damage" DisplayMemberBinding="{Binding WeaponMinDamage}" Width="Auto"/>
+                                <GridViewColumn Header="Max Damage" DisplayMemberBinding="{Binding WeaponMaxDamage}" Width="Auto"/>
+                                <GridViewColumn Header="Average Damage" DisplayMemberBinding="{Binding WeaponAverageDamage}" Width="Auto"/>
+                                <GridViewColumn Header="Min Growth" DisplayMemberBinding="{Binding MinGrowth}" Width="Auto"/>
+                                <GridViewColumn Header="Max Growth" DisplayMemberBinding="{Binding MaxGrowth}" Width="Auto"/>
+                                <GridViewColumn Header="Average Growth" DisplayMemberBinding="{Binding AverageGrowth}" Width="Auto"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem x:Name="HealTab" Header="Heals">
+                <!-- Data for Tab 2 -->
+                <ListView Name="HealView" GridViewColumnHeader.Click="GridViewColumnHeaderClickedHandler">
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="Column 1" DisplayMemberBinding="{Binding Column1}" />
-                            <GridViewColumn Header="Column 2" DisplayMemberBinding="{Binding Column2}" />
-                            <!-- Add more columns as needed -->
+                            <GridViewColumn Header="Spell Name" DisplayMemberBinding="{Binding Name}" Width="Auto"/>
+                            <GridViewColumn Header="Total Heals" DisplayMemberBinding="{Binding TotalHeal}" Width="Auto"/>
+                            <GridViewColumn Header="Min Heals" DisplayMemberBinding="{Binding MinHeal}" Width="Auto"/>
+                            <GridViewColumn Header="Max Heals" DisplayMemberBinding="{Binding MaxHeal}" Width="Auto"/>
+                            <GridViewColumn Header="Average Heals" DisplayMemberBinding="{Binding AverageHeal}" Width="Auto"/>
                         </GridView>
                     </ListView.View>
                 </ListView>
             </TabItem>
-            <TabItem x:Name="StyleTab" Header="Styles">
-                <!-- Data for Tab 2 -->
-                <ListView Name="StyleView">
-                    <!-- Define columns similar to Tab 1 -->
-                </ListView>
-            </TabItem>
-            <TabItem x:Name="HealTab" Header="Heals">
-                <!-- Data for Tab 2 -->
-                <ListView Name="HealView">
-                    <!-- Define columns similar to Tab 1 -->
-                </ListView>
-            </TabItem>
             <TabItem x:Name="ArmorTab" Header="Armor">
                 <!-- Data for Tab 2 -->
-                <ListView Name="ArmorView">
-                    <!-- Define columns similar to Tab 1 -->
+                <ListView Name="ArmorView" GridViewColumnHeader.Click="GridViewColumnHeaderClickedHandler">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Body Part" DisplayMemberBinding="{Binding Name}" Width="Auto"/>
+                            <GridViewColumn Header="Hits" DisplayMemberBinding="{Binding Hits}" Width="Auto"/>
+                            <GridViewColumn Header="Total Damage" DisplayMemberBinding="{Binding TotalDamage}" Width="Auto"/>
+                            <GridViewColumn Header="Min Damage" DisplayMemberBinding="{Binding MinDamage}" Width="Auto"/>
+                            <GridViewColumn Header="Max Damage" DisplayMemberBinding="{Binding MaxDamage}" Width="Auto"/>
+                            <GridViewColumn Header="Average Damage" DisplayMemberBinding="{Binding AverageDamage}" Width="Auto"/>
+                        </GridView>
+                    </ListView.View>
                 </ListView>
             </TabItem>
             <TabItem x:Name="KillTab" Header="Kills">
                 <!-- Data for Tab 2 -->
-                <ListView Name="KillView">
-                    <!-- Define columns similar to Tab 1 -->
+                <ListView Name="KillView" GridViewColumnHeader.Click="GridViewColumnHeaderClickedHandler">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="Auto"/>
+                            <GridViewColumn Header="Count" DisplayMemberBinding="{Binding Count}" Width="Auto"/>
+                        </GridView>
+                    </ListView.View>
                 </ListView>
             </TabItem>
-            <!-- Add more tabs as needed -->
         </TabControl>
         <!-- Minimize Button -->
         <Button Content="_" HorizontalAlignment="Right" VerticalAlignment="Top"
-                Width="30" Height="30" Margin="0,0,40,0"
+                Width="25" Height="25" Margin="0,0,36,0"
                 Click="MinimizeButton_Click"/>
-
-        <!-- Maximize Button (optional) -->
-        <!--<Button Content="□" HorizontalAlignment="Right" VerticalAlignment="Top"
-                Width="30" Height="30" Margin="0,5,70,0"
-                Click="MaximizeButton_Click"/>-->
-
         <!-- Close Button -->
         <Button Content="X" HorizontalAlignment="Right" VerticalAlignment="Top"
-                Width="30" Height="30" Margin="0,0,5,0"
+                Width="26" Height="25" Margin="0,0,5,0"
                 Click="CloseButton_Click"/>
     </Grid>
 </Window>
