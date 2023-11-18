@@ -1,0 +1,15 @@
+﻿<Window x:Class="DAoC_Chat_Gator.ColumnConfigWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Column Configuration" Height="300" Width="400">
+    <Grid>
+        <ListBox x:Name="ColumnListBox" SelectionMode="Multiple">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <CheckBox Content="{Binding Header}" IsChecked="{Binding IsVisible}"/>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <Button Content="Save" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,10" Click="SaveButton_Click"/>
+    </Grid>
+</Window>

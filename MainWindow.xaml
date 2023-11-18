@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="DAoC Chat Gator" Height="200" SizeToContent="Width" MinWidth="100" MaxWidth="600"
+        Title="DAoC Chat Gator" Height="200" Width="400" MinWidth="100" MaxHeight="200"
         WindowStyle="None"  AllowsTransparency="True" Background="Transparent"
         ResizeMode="NoResize"
         Topmost="True" Opacity="0.5" MouseLeftButtonDown="Window_MouseLeftButtonDown">
@@ -15,18 +15,21 @@
         <Slider x:Name="OpacitySlider" Minimum="0" Maximum="1" Value="0.8"
                   Width="84" RenderTransformOrigin="0.051,0.391" HorizontalAlignment="Left" VerticalAlignment="Top" />
         <!-- Choose File button -->
-        <Button Content="Choose File" Click="ChooseFileButton_Click"
-                    Canvas.Left="10" Canvas.Top="5" Margin="97,0,338,180"/>
+        <Button Content="Log File" Click="ChooseFileButton_Click"
+                    Canvas.Left="10" Canvas.Top="5" Margin="86,1,264,178" Width="50"/>
+
+        <Button Content="Columns" Click="ConfigureColumns_Click" Margin="136,1,214,178" Width="50"/>
 
         <!-- Choose File button -->
-        <Button Content="Reset Log" Click="ResetLog_Click"
-                    Canvas.Left="10" Canvas.Top="5" Margin="369,2,66,178"/>
+        <Button Content="Reset Log" Click="ResetLog_Click" Margin="261,0,79,178" RenderTransformOrigin="1.821,0.279" Width="60"/>
 
-        <TabControl x:Name="TabController" SelectionChanged="TabControl_SelectionChanged" Margin="0,30,0,10">
+        <Button Content="Window Size" Click="SetWindowSize_Click" Margin="186,0,139,178" Width="75"/>
+
+        <TabControl x:Name="TabController" SelectionChanged="TabControl_SelectionChanged" Margin="0,27,0,10">
             <TabItem x:Name="Total" Header="Total">
                 <!-- Data for Tab 1 -->
                 <ScrollViewer HorizontalScrollBarVisibility="Auto">
-                    <ListView Name="TotalView" GridViewColumnHeader.Click="GridViewColumnHeaderClickedHandler">
+                    <ListView Name="TotalView" GridViewColumnHeader.Click="GridViewColumnHeaderClickedHandler" Height="128">
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Type}" Width="Auto"/>
@@ -159,11 +162,11 @@
         </TabControl>
         <!-- Minimize Button -->
         <Button Content="_" HorizontalAlignment="Right" VerticalAlignment="Top"
-                Width="25" Height="25" Margin="0,0,36,0"
+                Width="25" Height="22" Margin="0,0,31,0"
                 Click="MinimizeButton_Click"/>
         <!-- Close Button -->
         <Button Content="X" HorizontalAlignment="Right" VerticalAlignment="Top"
-                Width="26" Height="25" Margin="0,0,5,0"
+                Width="26" Height="22" Margin="0,0,5,0"
                 Click="CloseButton_Click"/>
     </Grid>
 </Window>

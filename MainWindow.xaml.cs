@@ -31,6 +31,8 @@ namespace DAoC_Chat_Gator
         private readonly System.Timers.Timer fileCheckTimer = new System.Timers.Timer();
         private string filePath;
         private string copiedFilePath;
+
+        public ListView viewBase;
         public MainWindow()
         {
             InitializeComponent();
@@ -42,6 +44,54 @@ namespace DAoC_Chat_Gator
             copiedFilePath = string.Empty;
 
             PopulateTabsWithData();
+        }
+
+        private void SetWindowSize_Click(object sender, RoutedEventArgs e)
+        {
+            // Create and show the window size configuration dialog
+            var sizeConfigDialog = new WindowSizeConfigDialog(Width, Height);
+            if (sizeConfigDialog.ShowDialog() == true)
+            {
+                // Apply the new window size
+                Width = sizeConfigDialog.SelectedWidth;
+                Height = sizeConfigDialog.SelectedHeight;
+            }
+        }
+
+        private void ConfigureColumns_Click(object sender, RoutedEventArgs e)
+        {
+            // Get the column headers from the GridView
+            if (viewBase != null && viewBase.View != null && viewBase.View is GridView gridView)
+            {
+                List<string> columnHeaders = gridView.Columns.Cast<GridViewColumn>().Select(column => column.Header.ToString()).ToList();
+
+                if (columnHeaders != null && columnHeaders.Any())
+                {
+                    // Create and show the configuration window
+                    var configWindow = new ColumnConfigWindow(columnHeaders);
+                    if (configWindow.ShowDialog() == true)
+                    {
+                        // Apply the column visibility changes based on user preferences
+                        foreach (var columnItem in configWindow.Columns)
+                        {
+                            var column = gridView.Columns.FirstOrDefault(c => c.Header.ToString() == columnItem.Header);
+                            if (column != null)
+                            {
+                                // Adjust the column's Width to 0 to hide it
+                                column.Width = columnItem.IsVisible ? Double.NaN : 0;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("No columns found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("This tab isn't setup to choose columns.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
@@ -829,7 +879,15 @@ namespace DAoC_Chat_Gator
         {
             if (TabController.SelectedItem == SpellTab)
             {
-                // Do we want to do something here?
+                viewBase = SpellView;
+            }
+            if (TabController.SelectedItem == HealTab)
+            {
+                viewBase = HealView;
+            }
+            if (TabController.SelectedItem == StyleTab)
+            {
+                viewBase = StyleView;
             }
         }
         private void Sort(string sortBy, ListSortDirection direction)
