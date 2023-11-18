@@ -67,8 +67,10 @@ namespace DAoC_Chat_Gator
 
                 if (columnHeaders != null && columnHeaders.Any())
                 {
-                    // Create and show the configuration window
                     var configWindow = new ColumnConfigWindow(columnHeaders);
+
+                    // Create and show the configuration window
+                    
                     if (configWindow.ShowDialog() == true)
                     {
                         // Apply the column visibility changes based on user preferences

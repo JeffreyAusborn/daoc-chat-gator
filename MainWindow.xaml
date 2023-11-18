@@ -16,9 +16,9 @@
                   Width="84" RenderTransformOrigin="0.051,0.391" HorizontalAlignment="Left" VerticalAlignment="Top" />
         <!-- Choose File button -->
         <Button Content="Log File" Click="ChooseFileButton_Click"
-                    Canvas.Left="10" Canvas.Top="5" Margin="86,1,264,178" Width="50"/>
+                    Canvas.Left="10" Canvas.Top="5" Margin="86,0,264,178" Width="50"/>
 
-        <Button Content="Columns" Click="ConfigureColumns_Click" Margin="136,1,214,178" Width="50"/>
+        <Button Content="Columns" Click="ConfigureColumns_Click" Margin="136,0,214,178" Width="50"/>
 
         <!-- Choose File button -->
         <Button Content="Reset Log" Click="ResetLog_Click" Margin="261,0,79,178" RenderTransformOrigin="1.821,0.279" Width="60"/>
