@@ -44,7 +44,10 @@
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Spell Name" DisplayMemberBinding="{Binding SpellName}" Width="Auto"/>
+                                <GridViewColumn Header="Average Time" DisplayMemberBinding="{Binding AverageTime}" Width="Auto"/>
+                                <GridViewColumn Header="Damage Count" DisplayMemberBinding="{Binding OutputCount}" Width="Auto"/>
                                 <GridViewColumn Header="Total Damage" DisplayMemberBinding="{Binding TotalOutput}" Width="Auto"/>
+                                <GridViewColumn Header="Crit Count" DisplayMemberBinding="{Binding CritCount}" Width="Auto"/>
                                 <GridViewColumn Header="Total Crit" DisplayMemberBinding="{Binding TotalCrit}" Width="Auto"/>
                                 <GridViewColumn Header="Min Damage" DisplayMemberBinding="{Binding MinOutput}" Width="Auto"/>
                                 <GridViewColumn Header="Max Damage" DisplayMemberBinding="{Binding MaxOutput}" Width="Auto"/>
@@ -64,7 +67,10 @@
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Spell Name" DisplayMemberBinding="{Binding SpellName}" Width="Auto"/>
+                                <GridViewColumn Header="Average Time" DisplayMemberBinding="{Binding AverageTime}" Width="Auto"/>
+                                <GridViewColumn Header="Damage Count" DisplayMemberBinding="{Binding OutputCount}" Width="Auto"/>
                                 <GridViewColumn Header="Total Damage" DisplayMemberBinding="{Binding TotalOutput}" Width="Auto"/>
+                                <GridViewColumn Header="Crit Count" DisplayMemberBinding="{Binding CritCount}" Width="Auto"/>
                                 <GridViewColumn Header="Total Crit" DisplayMemberBinding="{Binding TotalCrit}" Width="Auto"/>
                                 <GridViewColumn Header="Min Damage" DisplayMemberBinding="{Binding MinOutput}" Width="Auto"/>
                                 <GridViewColumn Header="Max Damage" DisplayMemberBinding="{Binding MaxOutput}" Width="Auto"/>
@@ -85,10 +91,16 @@
                             <GridView>
                                 <GridViewColumn Header="Style Name" DisplayMemberBinding="{Binding StyleName}" Width="Auto"/>
                                 <GridViewColumn Header="Weapon Name" DisplayMemberBinding="{Binding WeaponName}" Width="Auto"/>
+                                <GridViewColumn Header="Damage Count" DisplayMemberBinding="{Binding OutputCount}" Width="Auto"/>
                                 <GridViewColumn Header="Total Damage" DisplayMemberBinding="{Binding TotalOutput}" Width="Auto"/>
+                                <GridViewColumn Header="Crit Count" DisplayMemberBinding="{Binding CritCount}" Width="Auto"/>
+                                <GridViewColumn Header="Total Crit" DisplayMemberBinding="{Binding TotalCrit}" Width="Auto"/>
                                 <GridViewColumn Header="Min Damage" DisplayMemberBinding="{Binding MinOutput}" Width="Auto"/>
                                 <GridViewColumn Header="Max Damage" DisplayMemberBinding="{Binding MaxOutput}" Width="Auto"/>
                                 <GridViewColumn Header="Average Damage" DisplayMemberBinding="{Binding AverageOutput}" Width="Auto"/>
+                                <GridViewColumn Header="Min Crit" DisplayMemberBinding="{Binding MinCrit}" Width="Auto"/>
+                                <GridViewColumn Header="Max Crit" DisplayMemberBinding="{Binding MaxCrit}" Width="Auto"/>
+                                <GridViewColumn Header="Average Crit" DisplayMemberBinding="{Binding AverageCrit}" Width="Auto"/>
                                 <GridViewColumn Header="Min Growth" DisplayMemberBinding="{Binding MinGrowth}" Width="Auto"/>
                                 <GridViewColumn Header="Max Growth" DisplayMemberBinding="{Binding MaxGrowth}" Width="Auto"/>
                                 <GridViewColumn Header="Average Growth" DisplayMemberBinding="{Binding AverageGrowth}" Width="Auto"/>
@@ -103,11 +115,17 @@
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="Spell Name" DisplayMemberBinding="{Binding SpellName}" Width="Auto"/>
-                            <GridViewColumn Header="Total Damage" DisplayMemberBinding="{Binding TotalOutput}" Width="Auto"/>
+                            <GridViewColumn Header="Average Time" DisplayMemberBinding="{Binding AverageTime}" Width="Auto"/>
+                            <GridViewColumn Header="Heal Count" DisplayMemberBinding="{Binding OutputCount}" Width="Auto"/>
+                            <GridViewColumn Header="Total Heals" DisplayMemberBinding="{Binding TotalOutput}" Width="Auto"/>
+                            <GridViewColumn Header="Crit Count" DisplayMemberBinding="{Binding CritCount}" Width="Auto"/>
                             <GridViewColumn Header="Total Crit" DisplayMemberBinding="{Binding TotalCrit}" Width="Auto"/>
-                            <GridViewColumn Header="Min Damage" DisplayMemberBinding="{Binding MinOutput}" Width="Auto"/>
-                            <GridViewColumn Header="Max Damage" DisplayMemberBinding="{Binding MaxOutput}" Width="Auto"/>
-                            <GridViewColumn Header="Average Damage" DisplayMemberBinding="{Binding AverageOutput}" Width="Auto"/>
+                            <GridViewColumn Header="Min Heals" DisplayMemberBinding="{Binding MinOutput}" Width="Auto"/>
+                            <GridViewColumn Header="Max Heals" DisplayMemberBinding="{Binding MaxOutput}" Width="Auto"/>
+                            <GridViewColumn Header="Average Heals" DisplayMemberBinding="{Binding AverageOutput}" Width="Auto"/>
+                            <GridViewColumn Header="Min Crit" DisplayMemberBinding="{Binding MinCrit}" Width="Auto"/>
+                            <GridViewColumn Header="Max Crit" DisplayMemberBinding="{Binding MaxCrit}" Width="Auto"/>
+                            <GridViewColumn Header="Average Crit" DisplayMemberBinding="{Binding AverageCrit}" Width="Auto"/>
                         </GridView>
                     </ListView.View>
                 </ListView>

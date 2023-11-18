@@ -141,7 +141,24 @@ namespace DAoC_Chat_Gator
                 }
             }
         }
-        
+        static DateTime ExtractTime(string timestamp)
+        {
+            // Extract the timestamp string between square brackets
+            string timeString = timestamp.Substring(timestamp.IndexOf('[') + 1, 8);
+
+            // Parse the timestamp string to DateTime
+            DateTime time;
+            if (DateTime.TryParseExact(timeString, "HH:mm:ss", null, System.Globalization.DateTimeStyles.None, out time))
+            {
+                return time;
+            }
+            else
+            {
+                // Handle parsing error
+                Console.WriteLine("Error parsing timestamp.");
+                return DateTime.MinValue;
+            }
+        }
         private void ReadAndParseFile(string filePath)
         {
             try
@@ -165,20 +182,25 @@ namespace DAoC_Chat_Gator
                     string weaponName = null;
                     int styleGrowth = 0;
                     string bodyPart = null;
+                    DateTime? startCastTime = null;
+                    DateTime? endCastTime = null;
+                    int secondsDifference = 0;
+                    
+                    string startCastPattern = @"\[(\d{2}:\d{2}:\d{2})\] You begin casting a (.+?) spell!"; // 1: time 2: spellName
 
-                    string spellPattern = @"You cast a (.+?) spell!";
+                    string spellPattern = @"\[(\d{2}:\d{2}:\d{2})\] You cast a (.+?) spell!"; // 1: time 2: spellName
                     string shotPattern = @"You fire a (.+?)!";
                     string damagePattern = @"You hit .+? for (\d+).+?damage!";
                     string critSpellPattern = @"You critically hit for an additional (\d+) damage!";
                     string critAttackPattern = @" You critically hit .+? for an additional (\d+) damage!";
                     string healPattern = @"You heal .+? for (\d+) hit points.";
-                    string critHealPattern = @"You critically heal .+? for (\d+) hit points.";
+                    string critHealPattern = @"Your heal criticals for an extra (\d+) amount of hit points!";
                     string dotDamagePattern = @"Your (.+?) attacks .+? and hits for (\d+).+?damage!"; // 1:spellName, 2:damageValue
                     string dotDamageHitPattern = @"Your (.+?) hits .+? for (\d+).+?damage!"; // 1:spellName, 2:damageValue
                     string dotCritPattern = @"Your (.+?) critically hits .+? for an additional (\d+) damage!"; // 1:spellName, 2:damageValue
                     string styleGrowthPattern = @"You perform your (.+?) perfectly!.+?(\d+),"; // 1:styleName, 2:growthValue
                     string attackPattern = @"You attack .+? with your (.+?) and hit for (\d+).+?damage!"; // 1:weaponName, 2:damage
-                    string killPattern = @"You just killed (.+?)";
+                    string killPattern = @"You just killed (.+?)!";
                     string bodyDamagePattern = ".+? hits your (.+?) for (\\d+).+?damage!";
 
                     foreach (string line in allLines)
@@ -189,7 +211,7 @@ namespace DAoC_Chat_Gator
                             continue;
                         }
 
-                        
+                        Match startCastMatch = Regex.Match(line, startCastPattern);
                         Match spellMatch = Regex.Match(line, spellPattern);
                         Match shotMatch = Regex.Match(line, shotPattern);
                         Match spellDamageMatch = Regex.Match(line, damagePattern);
@@ -205,9 +227,22 @@ namespace DAoC_Chat_Gator
                         Match killMatch = Regex.Match(line, killPattern);
                         Match bodyDamageMatch = Regex.Match(line, bodyDamagePattern);
 
+                        if (startCastMatch.Success)
+                        {
+                            startCastTime = ExtractTime(startCastMatch.Groups[1].Value);
+                        }
+
                         if (spellMatch.Success)
                         {
-                            spellName = spellMatch.Groups[1].Value;
+                            endCastTime = ExtractTime(spellMatch.Groups[1].Value);
+                            if (startCastTime.HasValue && endCastTime.HasValue)
+                            {
+                                TimeSpan timeDifference = endCastTime.Value - startCastTime.Value;
+                                secondsDifference = (int)timeDifference.TotalSeconds;
+                            }
+                            
+
+                            spellName = spellMatch.Groups[2].Value;
                             styleName = "";
                             weaponName = "";
                             bodyPart = "";
@@ -257,7 +292,7 @@ namespace DAoC_Chat_Gator
                                 dotsnpets.Add(newDnp);
                             }
                             
-                            Totals tots = totals.FirstOrDefault(s => s.Type == "damage");
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "Damage");
                             if (tots != null)
                             {
                                 tots.Crit += damageValue;
@@ -267,7 +302,7 @@ namespace DAoC_Chat_Gator
                                 Totals newTots = new Totals
                                 {
                                     Crit = damageValue,
-                                    Type = "damage"
+                                    Type = "Damage"
                                 };
                                 totals.Add(newTots);
                             }
@@ -300,6 +335,11 @@ namespace DAoC_Chat_Gator
                                 if (dnp != null)
                                 {
                                     dnp.Output.Add(damageValue);
+                                    if (secondsDifference > 0)
+                                    {
+                                        dnp.Times.Add(secondsDifference);
+                                        secondsDifference = 0;
+                                    }
                                 }
                                 else
                                 {
@@ -307,13 +347,17 @@ namespace DAoC_Chat_Gator
                                     {
                                         SpellName = spellName,
                                         Output = { damageValue },
-                                        Crit = { 0 }
                                     };
+                                    if (secondsDifference > 0)
+                                    {
+                                        newDnp.Times.Add(secondsDifference);
+                                        secondsDifference = 0;
+                                    }
                                     dotsnpets.Add(newDnp);
                                 }
                             }
 
-                            Totals tots = totals.FirstOrDefault(s => s.Type == "damage");
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "Damage");
                             if (tots != null)
                             {
                                 tots.Output += damageValue;
@@ -323,7 +367,7 @@ namespace DAoC_Chat_Gator
                                 Totals newTots = new Totals
                                 {
                                     Output = damageValue,
-                                    Type = "damage"
+                                    Type = "Damage"
                                 };
                                 totals.Add(newTots);
                             }
@@ -356,19 +400,29 @@ namespace DAoC_Chat_Gator
                                 if (dnp != null)
                                 {
                                     dnp.Output.Add(damageValue);
+                                    if (secondsDifference > 0)
+                                    {
+                                        dnp.Times.Add(secondsDifference);
+                                        secondsDifference = 0;
+                                    }
                                 }
                                 else
                                 {
                                     Ability newDnp = new Ability
                                     {
                                         SpellName = spellName,
-                                        Output = { damageValue }
+                                        Output = { damageValue },
                                     };
+                                    if (secondsDifference > 0)
+                                    {
+                                        newDnp.Times.Add(secondsDifference);
+                                        secondsDifference = 0;
+                                    }
                                     dotsnpets.Add(newDnp);
                                 }
                             }
 
-                            Totals tots = totals.FirstOrDefault(s => s.Type == "damage");
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "Damage");
                             if (tots != null)
                             {
                                 tots.Output += damageValue;
@@ -378,7 +432,7 @@ namespace DAoC_Chat_Gator
                                 Totals newTots = new Totals
                                 {
                                     Output = damageValue,
-                                    Type = "damage"
+                                    Type = "Damage"
                                 };
                                 totals.Add(newTots);
                             }
@@ -413,7 +467,7 @@ namespace DAoC_Chat_Gator
                                 }
                             }
 
-                            Totals tots = totals.FirstOrDefault(s => s.Type == "damage");
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "Damage");
                             if (tots != null)
                             {
                                 tots.Crit += damageValue;
@@ -423,7 +477,60 @@ namespace DAoC_Chat_Gator
                                 Totals newTots = new Totals
                                 {
                                     Crit = damageValue,
-                                    Type = "damage"
+                                    Type = "Damage"
+                                };
+                                totals.Add(newTots);
+                            }
+
+                            styleName = "";
+                        }
+                        else if (critHealMatch.Success)
+                        {
+                            int damageValue = int.Parse(critHealMatch.Groups[1].Value);
+                            if (spellName == "")
+                            {
+                                if (styleName != "")
+                                {
+                                    spellName = styleName;
+                                }
+                                else if (bodyPart != "")
+                                {
+                                    spellName = bodyPart;
+                                }
+                                else if (weaponName != "")
+                                {
+                                    spellName = weaponName;
+                                }
+                            }
+                            if (damageValue > 0)
+                            {
+                                Ability spell = heals.FirstOrDefault(s => s.SpellName == spellName);
+                                if (spell != null)
+                                {
+                                    spell.Crit.Add(damageValue);
+                                }
+                                else
+                                {
+                                    Ability newSpell = new Ability
+                                    {
+                                        SpellName = spellName,
+                                        Crit = { damageValue }
+                                    };
+                                    heals.Add(newSpell);
+                                }
+                            }
+
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "Heal");
+                            if (tots != null)
+                            {
+                                tots.Crit += damageValue;
+                            }
+                            else
+                            {
+                                Totals newTots = new Totals
+                                {
+                                    Crit = damageValue,
+                                    Type = "Heal"
                                 };
                                 totals.Add(newTots);
                             }
@@ -462,11 +569,13 @@ namespace DAoC_Chat_Gator
                                         SpellName = spellName,
                                         Crit = { damageValue }
                                     };
+
                                     spells.Add(newSpell);
                                 }
+
                             }
 
-                            Totals tots = totals.FirstOrDefault(s => s.Type == "damage");
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "Damage");
                             if (tots != null)
                             {
                                 tots.Crit += damageValue;
@@ -476,7 +585,7 @@ namespace DAoC_Chat_Gator
                                 Totals newTots = new Totals
                                 {
                                     Crit = damageValue,
-                                    Type = "damage"
+                                    Type = "Damage"
                                 };
                                 totals.Add(newTots);
                             }
@@ -507,6 +616,11 @@ namespace DAoC_Chat_Gator
                                 if (spell != null)
                                 {
                                     spell.Output.Add(damageValue);
+                                    if (secondsDifference > 0)
+                                    {
+                                        spell.Times.Add(secondsDifference);
+                                        secondsDifference = 0;
+                                    }
                                 }
                                 else
                                 {
@@ -515,11 +629,17 @@ namespace DAoC_Chat_Gator
                                         SpellName = spellName,
                                         Output = { damageValue }
                                     };
+
+                                    if (secondsDifference > 0)
+                                    {
+                                        newSpell.Times.Add(secondsDifference);
+                                        secondsDifference = 0;
+                                    }
                                     spells.Add(newSpell);
                                 }
                             }
 
-                            Totals tots = totals.FirstOrDefault(s => s.Type == "damage");
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "Damage");
                             if (tots != null)
                             {
                                 tots.Output += damageValue;
@@ -529,7 +649,7 @@ namespace DAoC_Chat_Gator
                                 Totals newTots = new Totals
                                 {
                                     Output = damageValue,
-                                    Type = "damage"
+                                    Type = "Damage"
                                 };
                                 totals.Add(newTots);
                             }
@@ -555,6 +675,11 @@ namespace DAoC_Chat_Gator
                             if (heal != null)
                             {
                                 heal.Output.Add(matchValue);
+                                if (secondsDifference > 0)
+                                {
+                                    heal.Times.Add(secondsDifference);
+                                    secondsDifference = 0;
+                                }
                             }
                             else
                             {
@@ -563,11 +688,16 @@ namespace DAoC_Chat_Gator
                                     SpellName = spellName,
                                     Output = { matchValue }
                                 };
+                                if (secondsDifference > 0)
+                                {
+                                    newHeal.Times.Add(secondsDifference);
+                                    secondsDifference = 0;
+                                }
                                 heals.Add(newHeal);
                             }
 
 
-                            Totals tots = totals.FirstOrDefault(s => s.Type == "heal");
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "Heal");
                             if (tots != null)
                             {
                                 tots.Output += matchValue;
@@ -577,7 +707,7 @@ namespace DAoC_Chat_Gator
                                 Totals newTots = new Totals
                                 {
                                     Output = matchValue,
-                                    Type = "heal"
+                                    Type = "Heal"
                                 };
                                 totals.Add(newTots);
                             }
@@ -655,7 +785,7 @@ namespace DAoC_Chat_Gator
                             }
 
 
-                            Totals tots = totals.FirstOrDefault(s => s.Type == "damage");
+                            Totals tots = totals.FirstOrDefault(s => s.Type == "Damage");
                             if (tots != null)
                             {
                                 tots.Output += matchValue;
@@ -665,7 +795,7 @@ namespace DAoC_Chat_Gator
                                 Totals newTots = new Totals
                                 {
                                     Output = matchValue,
-                                    Type = "damage"
+                                    Type = "Damage"
                                 };
                                 totals.Add(newTots);
                             }
@@ -826,12 +956,17 @@ CollectionViewSource.GetDefaultView(KillView.ItemsSource);
         public string SpellName { get; set; }
 
         public List<int> Output { get; set; } = new List<int>();
+
+        public List<int> Times { get; set; } = new List<int>();
+        public double AverageTime => Times.Count > 0 ? Math.Round(Times.Average(), 2) : 0;
+        public int OutputCount => Output.Count;
         public int TotalOutput => Output.Sum();
         public int MinOutput => Output.Min();
         public int MaxOutput => Output.Max();
         public double AverageOutput => Output.Count > 0 ? Math.Round(Output.Average(), 2) : 0;
 
         public List<int> Crit { get; set; } = new List<int>();
+        public int CritCount => Crit.Count;
         public int TotalCrit => Crit.Count > 0 ? Crit.Sum() : 0;
         public int MinCrit => Crit.Count > 0 ? Crit.Min() : 0;
         public int MaxCrit => Crit.Count > 0 ? Crit.Max() : 0;
