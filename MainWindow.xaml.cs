@@ -32,6 +32,8 @@ namespace DAoC_Chat_Gator
         private string filePath;
         private string copiedFilePath;
 
+        public bool resetTheFile = false;
+
         public ListView viewBase;
         public MainWindow()
         {
@@ -191,6 +193,35 @@ namespace DAoC_Chat_Gator
                     CopyFile(filePath, copiedFilePath);
                     Dispatcher.Invoke(() => ReadAndParseFile(copiedFilePath));
                 }
+                if (resetTheFile)
+                {
+                    try
+                    {
+                        // Check if the file exists before attempting to delete it
+                        if (filePath != null && File.Exists(filePath))
+                        {
+
+                            File.Delete(filePath);
+                            spells.Clear();
+                            totals.Clear();
+                            dotsnpets.Clear();
+                            weapons.Clear();
+                            heals.Clear();
+                            armor.Clear();
+                            kills.Clear();
+                            resetTheFile = false;
+                        }
+
+                        if (copiedFilePath != null && File.Exists(copiedFilePath))
+                        {
+                            File.Delete(copiedFilePath);
+                        }
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                }
             }
         }
         static DateTime ExtractTime(string timestamp)
@@ -211,8 +242,39 @@ namespace DAoC_Chat_Gator
                 return DateTime.MinValue;
             }
         }
+
+
         private void ReadAndParseFile(string filePath)
         {
+            if (resetTheFile)
+            {
+                try
+                {
+                    // Check if the file exists before attempting to delete it
+                    if (filePath != null && File.Exists(filePath))
+                    {
+
+                        File.Delete(filePath);
+                        spells.Clear();
+                        totals.Clear();
+                        dotsnpets.Clear();
+                        weapons.Clear();
+                        heals.Clear();
+                        armor.Clear();
+                        kills.Clear();
+                        resetTheFile = false;
+                    }
+
+                    if (copiedFilePath != null && File.Exists(copiedFilePath))
+                    {
+                        File.Delete(copiedFilePath);
+                    }
+                }
+                catch (Exception)
+                {
+
+                }
+            }
             try
             {
                 using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -255,8 +317,16 @@ namespace DAoC_Chat_Gator
                     string killPattern = @"You just killed (.+?)!";
                     string bodyDamagePattern = ".+? hits your (.+?) for (\\d+).+?damage!";
 
+                    string resetPattern = ".+?@@You say.+?#resetlog.+?";
+
                     foreach (string line in allLines)
                     {
+                        Match resetMatch = Regex.Match(line, resetPattern);
+                        if (resetMatch.Success)
+                        {
+                            resetTheFile = true;
+                        }
+
                         // might work with this later on extra damage I think
                         if (line.Contains("@@"))
                         {
@@ -278,6 +348,8 @@ namespace DAoC_Chat_Gator
                         Match attackDamageMatch = Regex.Match(line, attackPattern);
                         Match killMatch = Regex.Match(line, killPattern);
                         Match bodyDamageMatch = Regex.Match(line, bodyDamagePattern);
+
+                        
 
                         if (startCastMatch.Success)
                         {
@@ -859,6 +931,7 @@ namespace DAoC_Chat_Gator
                         // [15:08:20] You attack the grimwood willow with your Basalt Buckler of Oblivion and hit for 125 damage! (Damage Modifier: 1869)
 
                     }
+
                 }
                 lastParseTime = File.GetLastWriteTime(filePath);
             }
