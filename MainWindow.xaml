@@ -20,9 +20,6 @@
 
         <Button Content="Columns" Click="ConfigureColumns_Click" Margin="136,0,214,178" Width="50"/>
 
-        <!-- Choose File button -->
-        <Button Content="Reset Log" Click="ResetLog_Click" Margin="261,0,79,178" RenderTransformOrigin="1.821,0.279" Width="60"/>
-
         <Button Content="Window Size" Click="SetWindowSize_Click" Margin="186,0,139,178" Width="75"/>
 
         <TabControl x:Name="TabController" SelectionChanged="TabControl_SelectionChanged" Margin="0,27,0,10">
@@ -44,29 +41,6 @@
                 <!-- Data for Tab 1 -->
                 <ScrollViewer HorizontalScrollBarVisibility="Auto">
                     <ListView Name="SpellView" GridViewColumnHeader.Click="GridViewColumnHeaderClickedHandler">
-                        <ListView.View>
-                            <GridView>
-                                <GridViewColumn Header="Spell Name" DisplayMemberBinding="{Binding SpellName}" Width="Auto"/>
-                                <GridViewColumn Header="Average Time" DisplayMemberBinding="{Binding AverageTime}" Width="Auto"/>
-                                <GridViewColumn Header="Damage Count" DisplayMemberBinding="{Binding OutputCount}" Width="Auto"/>
-                                <GridViewColumn Header="Total Damage" DisplayMemberBinding="{Binding TotalOutput}" Width="Auto"/>
-                                <GridViewColumn Header="Crit Count" DisplayMemberBinding="{Binding CritCount}" Width="Auto"/>
-                                <GridViewColumn Header="Total Crit" DisplayMemberBinding="{Binding TotalCrit}" Width="Auto"/>
-                                <GridViewColumn Header="Min Damage" DisplayMemberBinding="{Binding MinOutput}" Width="Auto"/>
-                                <GridViewColumn Header="Max Damage" DisplayMemberBinding="{Binding MaxOutput}" Width="Auto"/>
-                                <GridViewColumn Header="Average Damage" DisplayMemberBinding="{Binding AverageOutput}" Width="Auto"/>
-                                <GridViewColumn Header="Min Crit" DisplayMemberBinding="{Binding MinCrit}" Width="Auto"/>
-                                <GridViewColumn Header="Max Crit" DisplayMemberBinding="{Binding MaxCrit}" Width="Auto"/>
-                                <GridViewColumn Header="Average Crit" DisplayMemberBinding="{Binding AverageCrit}" Width="Auto"/>
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
-                </ScrollViewer>
-            </TabItem>
-            <TabItem x:Name="DnpTab" Header="Dots n Pets">
-                <!-- Data for Tab 1 -->
-                <ScrollViewer HorizontalScrollBarVisibility="Auto">
-                    <ListView Name="DnpView" GridViewColumnHeader.Click="GridViewColumnHeaderClickedHandler">
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Spell Name" DisplayMemberBinding="{Binding SpellName}" Width="Auto"/>
