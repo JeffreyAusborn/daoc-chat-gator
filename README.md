@@ -27,6 +27,16 @@ After a flush, Chat Gator will re-parse the log file.
 
 
 Releases
+0.0.6
+- Fixed wrong values with spells when dots were being used.
+- Added reset button back
+- Removed reset command
+- Added Resists to spells
+
+0.0.5
+- Combined dots and pets with spells
+- Removed dots and pets tab
+- Removed reset log button as it's now a command in game
 
 0.0.4
 - Added a resetlog regex in game. Chat Gator will look for /resetlog commang in your logs and will attempt to delete your log file and clear the aggregation objects.

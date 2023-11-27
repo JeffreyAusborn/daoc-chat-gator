@@ -21,7 +21,7 @@
         <Button Content="Columns" Click="ConfigureColumns_Click" Margin="136,0,214,178" Width="50"/>
 
         <Button Content="Window Size" Click="SetWindowSize_Click" Margin="186,0,139,178" Width="75"/>
-
+        <Button Content="Reset Log" Click="ResetLog_Click" Margin="261,0,79,178" RenderTransformOrigin="1.821,0.279" Width="60"/>
         <TabControl x:Name="TabController" SelectionChanged="TabControl_SelectionChanged" Margin="0,27,0,10">
             <TabItem x:Name="Total" Header="Total">
                 <!-- Data for Tab 1 -->
@@ -45,7 +45,9 @@
                             <GridView>
                                 <GridViewColumn Header="Spell Name" DisplayMemberBinding="{Binding SpellName}" Width="Auto"/>
                                 <GridViewColumn Header="Average Time" DisplayMemberBinding="{Binding AverageTime}" Width="Auto"/>
+                                <GridViewColumn Header="Cast Count" DisplayMemberBinding="{Binding CastCount}" Width="Auto"/>
                                 <GridViewColumn Header="Damage Count" DisplayMemberBinding="{Binding OutputCount}" Width="Auto"/>
+                                <GridViewColumn Header="Resists" DisplayMemberBinding="{Binding Resists}" Width="Auto"/>
                                 <GridViewColumn Header="Total Damage" DisplayMemberBinding="{Binding TotalOutput}" Width="Auto"/>
                                 <GridViewColumn Header="Crit Count" DisplayMemberBinding="{Binding CritCount}" Width="Auto"/>
                                 <GridViewColumn Header="Total Crit" DisplayMemberBinding="{Binding TotalCrit}" Width="Auto"/>
@@ -93,6 +95,7 @@
                         <GridView>
                             <GridViewColumn Header="Spell Name" DisplayMemberBinding="{Binding SpellName}" Width="Auto"/>
                             <GridViewColumn Header="Average Time" DisplayMemberBinding="{Binding AverageTime}" Width="Auto"/>
+                            <GridViewColumn Header="Cast Count" DisplayMemberBinding="{Binding CastCount}" Width="Auto"/>
                             <GridViewColumn Header="Heal Count" DisplayMemberBinding="{Binding OutputCount}" Width="Auto"/>
                             <GridViewColumn Header="Total Heals" DisplayMemberBinding="{Binding TotalOutput}" Width="Auto"/>
                             <GridViewColumn Header="Crit Count" DisplayMemberBinding="{Binding CritCount}" Width="Auto"/>
